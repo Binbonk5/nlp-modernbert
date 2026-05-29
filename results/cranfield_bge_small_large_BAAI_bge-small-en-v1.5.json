@@ -1,0 +1,16 @@
+{
+  "model": "BAAI/bge-small-en-v1.5",
+  "dataset": "cranfield",
+  "metric_name": "NDCG@10",
+  "score": 0.36142,
+  "time_sec": 1.379692,
+  "mem_mb": 300.57,
+  "query_batch_size": 32,
+  "corpus_batch_size": 64,
+  "corpus_chunk_size": 1024,
+  "top_k": 10,
+  "device": "cuda",
+  "results_file": "results/cranfield_bge_small_large_BAAI_bge-small-en-v1.5.json",
+  "corpus_size": 1400,
+  "query_size": 225
+}
