@@ -23,5 +23,8 @@ data/*
 # Logs
 *.log
 
+# Accidental file in repo root
+=2.6.3
+
 # Hugging Face / training caches
 .cache/
