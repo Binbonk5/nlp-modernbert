@@ -1,16 +1,33 @@
-# nlp-modernbert
+# Reproduce Smarter, Better, Faster, Longer: A Modern Bidirectional Encoder for Fast, Memory Efficient, and Long Context Finetuning and Inference
 
-## Layout
+Môn NLP - Nhóm 5
 
-- `experiments/`: one standalone Python file per model + dataset combination
-- `results/`: one JSON result file per experiment
-- `checkpoints/`: saved fine-tuned models and Hugging Face caches
-- `data/`: local datasets used by the SST-2 and retrieval experiments
-- `scripts/aggregate.py`: combines JSON outputs into a CSV report
+- Cáp Kim Hải Anh - 23520036
+- Hoàng Đức Dũng - 23520328
+- Nguyễn Thái Sơn - 23521356
+- Bùi Ngọc Thiên Thanh - 23521436
+
+Paper: https://arxiv.org/pdf/2412.13663
+
+## GPU Requirement
+
+Yêu cầu tài nguyên GPU: GTX 4090 24GB trở lên.
+
+## Repository Tree
+
+```text
+nlp-modernbert/
+├── data/
+├── experiments/
+├── results/
+└── scripts/
+```
 
 ## Setup
 
 ```bash
+git clone https://github.com/Binbonk5/nlp-modernbert.git
+cd nlp-modernbert
 conda create -n nlp-modernbert python=3.10 -y
 conda activate nlp-modernbert
 pip install -U pip
@@ -49,3 +66,8 @@ If you want to launch multi-GPU training, use `accelerate launch` with the relev
 ```bash
 accelerate launch --num_processes 4 experiments/run_sst2_modernbert_base.py
 ```
+
+## References
+
+1. Reproduce Smarter, Better, Faster, Longer: A Modern Bidirectional Encoder for Fast, Memory Efficient, and Long Context Finetuning and Inference. https://arxiv.org/pdf/2412.13663
+2. This repository: https://github.com/Binbonk5/nlp-modernbert
