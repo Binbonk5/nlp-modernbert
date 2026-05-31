@@ -25,7 +25,7 @@ nlp-modernbert/
 
 ## Getting Started
 
-### 1. Clone nlp-bert
+### 1. Clone nlp-modernbert
 
 ```bash
 git clone https://github.com/Binbonk5/nlp-modernbert.git
