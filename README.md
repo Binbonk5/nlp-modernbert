@@ -1,10 +1,11 @@
 # REPRODUCE *Smarter, Better, Faster, Longer: A Modern Bidirectional Encoder for Fast, Memory Efficient, and Long Context Finetuning and Inference*
-Paper: [![arXiv](https://img.shields.io/badge/arXiv-2412.13663-B31B1B.svg)](https://arxiv.org/abs/2412.13663)
+[![arXiv](https://img.shields.io/badge/arXiv-2412.13663-B31B1B.svg)](https://arxiv.org/abs/2412.13663)
+[![ACL Anthology](https://img.shields.io/badge/ACL--Anthology-2025.acl--long.127-115926.svg)](https://aclanthology.org/2025.acl-long.127/)
 
 Môn NLP - Nhóm 5
 
-- Cáp Kim Hải Anh - 23520036
 - Hoàng Đức Dũng - 23520328
+- Cáp Kim Hải Anh - 23520036
 - Nguyễn Thái Sơn - 23521356
 - Bùi Ngọc Thiên Thanh - 23521436
 
