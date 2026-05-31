@@ -43,8 +43,8 @@ pip install --no-build-isolation flash-attn>=2.6.3
 ```
 
 ### 3. Data: 
-Auto download when you run 
-The SST-2 evaluation script reads the local test split from `data/glue-sst2/test.csv`.
+- Auto download when you run 
+- The SST-2 evaluation script reads the local test split from `data/glue-sst2/test.csv`.
 
 ### 4. Evaluation
 
