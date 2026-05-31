@@ -14,6 +14,8 @@ env/
 
 # Experiment outputs and checkpoints
 checkpoints/
+results/*.json
+!results/.gitkeep
 
 # Data: ignore everything except glue-sst2
 data/*
