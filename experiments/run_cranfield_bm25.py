@@ -89,6 +89,9 @@ def main():
 	query_ids = list(queries.keys())
 
 	print("[2/3] Đang xây dựng BM25 index...")
+	if torch.cuda.is_available():
+		torch.cuda.reset_peak_memory_stats()
+		torch.cuda.synchronize()
 	start_time = time.perf_counter()
 	bm25 = build_bm25_index(corpus_texts)
 
@@ -104,11 +107,16 @@ def main():
 			if doc_scores[idx] > 0
 		}
 
+	if torch.cuda.is_available():
+		torch.cuda.synchronize()
+	mem_mb = round(torch.cuda.max_memory_allocated() / (1024 * 1024), 2) if torch.cuda.is_available() else 0.0
+
 	final_results = {
 		MODEL_NAME: evaluate_results(bm25_results, qrels, MODEL_NAME)
 	}
 	final_results[MODEL_NAME]["time_sec"] = round(time.perf_counter() - start_time, 6)
 	final_results[MODEL_NAME]["device"] = device
+	final_results[MODEL_NAME]["mem_mb"] = mem_mb
 	final_results[MODEL_NAME]["corpus_size"] = len(corpus)
 	final_results[MODEL_NAME]["query_size"] = len(queries)
 

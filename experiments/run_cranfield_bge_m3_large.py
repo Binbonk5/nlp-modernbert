@@ -138,6 +138,8 @@ def main():
     if torch.cuda.is_available():
         torch.cuda.synchronize()
 
+    mem_mb = round(torch.cuda.max_memory_allocated() / (1024 * 1024), 2) if torch.cuda.is_available() else 0.0
+
     ndcg_key = "NDCG@10"
     map_key = "MAP@10"
     recall_key = "Recall@10"
@@ -150,7 +152,7 @@ def main():
         "map@10": round(float(_map[map_key]), 6),
         "recall@10": round(float(recall[recall_key]), 6),
         "time_sec": round(time.perf_counter() - start_time, 6),
-        "mem_mb": round(torch.cuda.max_memory_allocated() / (1024 * 1024), 2) if torch.cuda.is_available() else 0.0,
+        "mem_mb": mem_mb,
         "query_batch_size": QUERY_BATCH_SIZE,
         "corpus_batch_size": CORPUS_BATCH_SIZE,
         "corpus_chunk_size": CORPUS_CHUNK_SIZE,

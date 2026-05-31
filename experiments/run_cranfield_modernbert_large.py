@@ -91,6 +91,10 @@ def main():
     print("[2/3] Đang tải mô hình ModernBERT vào bộ nhớ...")
     model_modernbert = build_model(MODEL_NAME, device=device)
 
+    if torch.cuda.is_available():
+        torch.cuda.reset_peak_memory_stats()
+        torch.cuda.synchronize()
+
     corpus_ids = list(corpus.keys())
     query_ids = list(queries.keys())
     corpus_texts = [format_passage(corpus[doc_id]) for doc_id in corpus_ids]
@@ -115,6 +119,10 @@ def main():
 
     cos_scores = util.cos_sim(query_embeddings, corpus_embeddings)
 
+    if torch.cuda.is_available():
+        torch.cuda.synchronize()
+    mem_mb = round(torch.cuda.max_memory_allocated() / (1024 * 1024), 2) if torch.cuda.is_available() else 0.0
+
     modernbert_results = {}
     for row_index, query_id in enumerate(query_ids):
         top_results = torch.topk(cos_scores[row_index], k=min(TOP_RETRIEVE, len(corpus_ids)))
@@ -128,6 +136,7 @@ def main():
     }
     final_results[MODEL_NAME]["time_sec"] = round(time.perf_counter() - start_time, 6)
     final_results[MODEL_NAME]["device"] = device
+    final_results[MODEL_NAME]["mem_mb"] = mem_mb
     final_results[MODEL_NAME]["corpus_size"] = len(corpus)
     final_results[MODEL_NAME]["query_size"] = len(queries)
 
