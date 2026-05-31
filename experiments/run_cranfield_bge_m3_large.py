@@ -9,12 +9,11 @@ from typing import Dict, List
 import ir_datasets
 import torch
 from beir.retrieval.evaluation import EvaluateRetrieval
-from sentence_transformers import SentenceTransformer, models
+from sentence_transformers import SentenceTransformer, util
 from tqdm import tqdm
 
 
 PROJECT_ROOT = Path(__file__).resolve().parents[1]
-DATA_DIR = PROJECT_ROOT / "data"
 RESULTS_DIR = PROJECT_ROOT / "results"
 
 DATASET_NAME = "cranfield"
@@ -23,15 +22,20 @@ MODEL_SLUG = MODEL_NAME.replace("/", "_")
 RESULTS_FILE = RESULTS_DIR / f"cranfield_bge_m3_large_{MODEL_SLUG}.json"
 QUERY_BATCH_SIZE = 16
 CORPUS_BATCH_SIZE = 32
-CORPUS_CHUNK_SIZE = 1024
+CORPUS_CHUNK_SIZE = 512
 TOP_K = 10
 MAX_SEQ_LENGTH = 512
 
 
-def build_model(model_name: str, device: str):
-    transformer = models.Transformer(model_name, model_args={"torch_dtype": torch.bfloat16, "trust_remote_code": True}, tokenizer_args={"use_fast": True})
-    pooling = models.Pooling(transformer.get_word_embedding_dimension(), pooling_mode_mean_tokens=False, pooling_mode_cls_token=True, pooling_mode_max_tokens=False)
-    model = SentenceTransformer(modules=[transformer, pooling], device=device)
+def build_model(model_name: str, device: str) -> SentenceTransformer:
+    model = SentenceTransformer(
+        model_name,
+        device=device,
+        model_kwargs={
+            "torch_dtype": torch.bfloat16,
+            "trust_remote_code": True,
+        },
+    )
     model.max_seq_length = MAX_SEQ_LENGTH
     return model
 
@@ -43,7 +47,13 @@ def format_passage(doc: Dict[str, str]) -> str:
 
 
 def encode_texts(model: SentenceTransformer, texts: List[str], batch_size: int):
-    return model.encode(texts, batch_size=batch_size, convert_to_tensor=True, normalize_embeddings=True, show_progress_bar=False)
+    return model.encode(
+        texts,
+        batch_size=batch_size,
+        convert_to_tensor=True,
+        normalize_embeddings=True,
+        show_progress_bar=False,
+    )
 
 
 @torch.no_grad()
@@ -55,17 +65,20 @@ def retrieve_topk(model: SentenceTransformer, corpus: Dict[str, Dict[str, str]],
     query_texts = list(queries.values())
 
     query_embeddings = encode_texts(model, query_texts, batch_size=QUERY_BATCH_SIZE).to(device)
-    top_scores = torch.full((len(query_ids), TOP_K), float("-inf"), device=device)
-    top_doc_idx = torch.full((len(query_ids), TOP_K), -1, dtype=torch.long, device=device)
 
-    for start in tqdm(range(0, len(corpus_ids), CORPUS_CHUNK_SIZE), desc="Tiến độ xử lý Chunks", unit="chunk"):
+    top_k = min(100, len(corpus_ids))
+    top_scores = torch.full((len(query_ids), top_k), float("-inf"), device=device)
+    top_doc_idx = torch.full((len(query_ids), top_k), -1, dtype=torch.long, device=device)
+
+    for start in tqdm(range(0, len(corpus_ids), CORPUS_CHUNK_SIZE), desc="Tiến độ xử lý chunks", unit="chunk"):
         end = min(start + CORPUS_CHUNK_SIZE, len(corpus_ids))
         chunk_embeddings = encode_texts(model, corpus_texts[start:end], batch_size=CORPUS_BATCH_SIZE).to(device)
-        scores = torch.matmul(query_embeddings, chunk_embeddings.transpose(0, 1))
+        scores = util.cos_sim(query_embeddings, chunk_embeddings)
         chunk_indices = torch.arange(start, end, device=device).unsqueeze(0).expand(scores.size(0), -1)
+
         combined_scores = torch.cat([top_scores, scores], dim=1)
         combined_indices = torch.cat([top_doc_idx, chunk_indices], dim=1)
-        new_scores, new_positions = torch.topk(combined_scores, k=TOP_K, dim=1)
+        new_scores, new_positions = torch.topk(combined_scores, k=top_k, dim=1)
         top_scores = new_scores
         top_doc_idx = torch.gather(combined_indices, 1, new_positions)
 
@@ -121,21 +134,27 @@ def main():
     results = retrieve_topk(model, corpus, queries)
     evaluator = EvaluateRetrieval()
     print("[5/5] Đang chấm điểm so với đáp án (Qrels)...")
-    ndcg, _map, recall, precision = evaluator.evaluate(qrels, results, k_values=[TOP_K])
+    ndcg, _map, recall, precision = evaluator.evaluate(qrels, results, k_values=[1, 5, 10])
     if torch.cuda.is_available():
         torch.cuda.synchronize()
+
+    ndcg_key = "NDCG@10"
+    map_key = "MAP@10"
+    recall_key = "Recall@10"
 
     record = {
         "model": MODEL_NAME,
         "dataset": DATASET_NAME,
-        "metric_name": "NDCG@10",
-        "score": round(float(ndcg[f"NDCG@{TOP_K}"]), 6),
+        "metric_name": ndcg_key,
+        "score": round(float(ndcg[ndcg_key]), 6),
+        "map@10": round(float(_map[map_key]), 6),
+        "recall@10": round(float(recall[recall_key]), 6),
         "time_sec": round(time.perf_counter() - start_time, 6),
         "mem_mb": round(torch.cuda.max_memory_allocated() / (1024 * 1024), 2) if torch.cuda.is_available() else 0.0,
         "query_batch_size": QUERY_BATCH_SIZE,
         "corpus_batch_size": CORPUS_BATCH_SIZE,
         "corpus_chunk_size": CORPUS_CHUNK_SIZE,
-        "top_k": TOP_K,
+        "top_k": 100,
         "device": device,
         "results_file": str(RESULTS_FILE.relative_to(PROJECT_ROOT)),
         "corpus_size": len(corpus),
