@@ -2,7 +2,7 @@
 [![arXiv](https://img.shields.io/badge/arXiv-2412.13663-B31B1B.svg)](https://arxiv.org/abs/2412.13663)
 [![ACL Anthology](https://img.shields.io/badge/ACL--Anthology-2025.acl--long.127-115926.svg)](https://aclanthology.org/2025.acl-long.127/)
 
-Môn NLP - Nhóm 5
+## Môn NLP - Nhóm 5
 
 - Hoàng Đức Dũng - 23520328
 - Cáp Kim Hải Anh - 23520036
@@ -11,7 +11,7 @@ Môn NLP - Nhóm 5
 
 ## GPU Requirement
 
-Yêu cầu tài nguyên GPU: GTX 4090 24GB trở lên.
+NVIDIA GeForce RTX 4090 (24GB) or equivalent/higher
 
 ## Repository Tree
 
